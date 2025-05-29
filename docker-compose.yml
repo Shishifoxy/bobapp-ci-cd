@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  back:
+    build:
+      context: ./back
+    container_name: bobapp-back
+    ports:
+      - "8080:8080"
+    networks:
+      - bobapp-network
+
+  front:
+    build:
+      context: ./front
+    container_name: bobapp-front
+    ports:
+      - "8081:80"
+    depends_on:
+      - back
+    networks:
+      - bobapp-network
+
+networks:
+  bobapp-network:
+    driver: bridge

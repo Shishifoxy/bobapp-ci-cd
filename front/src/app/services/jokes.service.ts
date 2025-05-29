@@ -8,7 +8,7 @@ import { Joke } from '../model/joke.model';
 })
 export class JokesService {
 
-  private pathService = 'api/joke';
+  private pathService = 'http://localhost:8080/api/joke';
 
   private subject: BehaviorSubject<Joke | null> = new BehaviorSubject<Joke | null>(null);
 
@@ -17,8 +17,15 @@ export class JokesService {
   }
 
   public getRandomJoke(): void {
-    this.httpClient.get<Joke>(this.pathService).subscribe((joke: Joke) => this.subject.next(joke));
+    this.httpClient.get<Joke>(this.pathService).subscribe({
+      next: (joke: Joke) => this.subject.next(joke),
+      error: (err) => {
+        console.error('Erreur lors du chargement de la blague :', err);
+        this.subject.next(null);
+      }
+    });
   }
+
 
   public joke$(): Observable<Joke | null > {
     return this.subject.asObservable();
