@@ -19,8 +19,8 @@
 		<sonar.projectKey>Shishifoxy_bobapp-ci-cd</sonar.projectKey>
 		<sonar.organization>shishifoxy</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<sonar.sources>src/main/java</sonar.sources>
-		<sonar.tests>src/test/java</sonar.tests>
+		<sonar.sources>src,/front/src</sonar.sources>
+		<sonar.tests>src/test,/front/src</sonar.tests>
 		<sonar.test.inclusions>**/*Test.java,**/*.spec.ts</sonar.test.inclusions>
 		<sonar.typescript.lcov.reportPaths>../front/coverage/lcov.info</sonar.typescript.lcov.reportPaths>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
