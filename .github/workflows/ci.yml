@@ -71,17 +71,14 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Verify Frontend Coverage
+      - name: Verify and Prepare Coverage Reports
         run: |
-          echo "=== Vérification du rapport LCOV ==="
-          echo "Contenu original:"
-          ls -la ../front/coverage/
-          cat ../front/coverage/lcov.info | head -n 5
+          echo "=== Vérification frontend ==="
+          ls -la front/coverage/
+          cp front/coverage/lcov.info front-coverage.info
           
-          echo "Copie pour Sonar:"
-          cp ../front/coverage/lcov.info ../front/lcov.info
-          ls -la ../front/lcov.info
-          cat ../front/lcov.info | head -n 5
+          echo "=== Vérification backend ==="
+          ls -la back/target/site/jacoco/
 
       - name: SonarCloud Scan
         working-directory: back
@@ -94,11 +91,10 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/lcov.info \
-            -Dsonar.typescript.lcov.reportPaths=../front/lcov.info \
+            -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
+            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
             -Dsonar.sources=src,../front/src \
-            -Dsonar.tests=src/test,../front/src/app \
-            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.tests=src/test,../front/src/app
 
   docker-publish:
     name: Build & Push Docker Images
