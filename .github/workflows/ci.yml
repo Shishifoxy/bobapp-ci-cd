@@ -24,48 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
-
-      - name: Install dependencies
+      - run: yarn install
         working-directory: front
-        run: |
-          if [ ! -f "yarn.lock" ]; then
-            yarn install
-          else
-            yarn install --frozen-lockfile
-          fi
-
-      - name: Run tests with coverage
+      - run: yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false
         working-directory: front
-        run: |
-          # Clean previous reports
-          rm -rf coverage/ .nyc_output/
-          
-          # Run tests with coverage
-          yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false --no-progress
-          
-          # Verify report exists
-          if [ -f "coverage/lcov-front.info" ]; then
-            cp coverage/lcov-front.info ../front-coverage.info
-            echo "✔ Coverage report copied"
-          else
-            echo "::error::Coverage report not found!"
-            echo "Directory content:"
-            ls -la coverage/
-            exit 1
-          fi
-
-      - name: Verify coverage
-        run: |
-          echo "=== Coverage Verification ==="
-          echo "Report size: $(wc -l < front-coverage.info) lines"
-          head -5 front-coverage.info
+      - run: cp front/coverage/lcov-front.info front-coverage.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -77,11 +43,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
       - name: SonarCloud Scan
         working-directory: back
         env:
