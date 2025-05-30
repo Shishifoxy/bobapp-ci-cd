@@ -2,16 +2,18 @@ version: '3.8'
 
 services:
   back:
-    image: shishifoxy1/bobapp-back:latest
-    container_name: bobapp-back
+    build:
+      context: ./back
+    container_name: bobapp-back-dev
     ports:
       - "8080:8080"
     networks:
       - bobapp-network
 
   front:
-    image: shishifoxy1/bobapp-front:latest
-    container_name: bobapp-front
+    build:
+      context: ./front
+    container_name: bobapp-front-dev
     ports:
       - "8081:80"
     depends_on:
