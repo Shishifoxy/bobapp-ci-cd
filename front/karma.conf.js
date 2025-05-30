@@ -20,10 +20,9 @@ module.exports = function (config) {
       suppressAll: true
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, 'coverage'), // Chemin simplifié
+      dir: require('path').join(__dirname, 'coverage'),
       reporters: [
-        { type: 'html', subdir: 'report-html' },
-        { type: 'lcovonly', subdir: '.', file: 'lcov.info' }, // Fichier à la racine de coverage/
+        { type: 'lcovonly', subdir: '.', file: 'lcov-front.info' }, // Nom distinct
         { type: 'text-summary' }
       ]
     },

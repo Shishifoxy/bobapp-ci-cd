@@ -45,13 +45,7 @@ jobs:
       - name: Run tests with coverage
         working-directory: front
         run: |
-          yarn test --code-coverage --browsers=ChromeHeadlessCI
-          ls -la coverage/
-          cat coverage/lcov.info | head -n 5
-
-      - name: Verify coverage report
-        working-directory: front
-        run: |
+          yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false
           ls -la coverage/
           cat coverage/lcov.info | head -n 5
 
@@ -77,6 +71,18 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Verify Frontend Coverage
+        run: |
+          echo "=== Vérification du rapport LCOV ==="
+          echo "Contenu original:"
+          ls -la ../front/coverage/
+          cat ../front/coverage/lcov.info | head -n 5
+          
+          echo "Copie pour Sonar:"
+          cp ../front/coverage/lcov.info ../front/lcov.info
+          ls -la ../front/lcov.info
+          cat ../front/lcov.info | head -n 5
+
       - name: SonarCloud Scan
         working-directory: back
         env:
@@ -88,8 +94,11 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/coverage/lcov.info \
-            -Dsonar.typescript.lcov.reportPaths=../front/coverage/lcov.info
+            -Dsonar.javascript.lcov.reportPaths=../front/lcov.info \
+            -Dsonar.typescript.lcov.reportPaths=../front/lcov.info \
+            -Dsonar.sources=src,../front/src \
+            -Dsonar.tests=src/test,../front/src/app \
+            -Dsonar.sourceEncoding=UTF-8
 
   docker-publish:
     name: Build & Push Docker Images
