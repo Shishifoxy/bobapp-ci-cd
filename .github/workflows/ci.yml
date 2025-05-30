@@ -78,10 +78,7 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/coverage/lcov.info \
-            -Dsonar.sources=../back/src,../front/src
-
-
+            -Dsonar.javascript.lcov.reportPaths=../front/coverage/lcov.info
 
   docker-publish:
     name: Build & Push Docker Images
