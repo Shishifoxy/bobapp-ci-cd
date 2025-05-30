@@ -95,15 +95,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           # Analyse backend (Java)
-        mvn -f back/pom.xml sonar:sonar \
-        -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
-        -Dsonar.organization=shishifoxy \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=$SONAR_TOKEN \
-        -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml \
-        -Dsonar.sources=back/src \
-        -Dsonar.tests=back/src/test \
-        -Dsonar.java.binaries=back/target/classes
+          mvn -f back/pom.xml sonar:sonar \
+            -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
+            -Dsonar.organization=shishifoxy \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml \
+            -Dsonar.sources=back/src \
+            -Dsonar.tests=back/src/test \
+            -Dsonar.java.binaries=back/target/classes
+
 
           # Analyse frontend (Angular)
           sonar-scanner \
