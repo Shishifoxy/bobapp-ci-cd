@@ -103,7 +103,7 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.sources=src \
             -Dsonar.tests=src/test \
-            -Dsonar.java.binaries=target/classes
+            -Dsonar.java.binaries=back/target/classes
 
           # Analyse frontend (Angular)
           sonar-scanner \
@@ -158,3 +158,6 @@ jobs:
           docker stop bobapp-front || true && docker rm bobapp-front || true
           docker run -d --name bobapp-back --network bobapp-network -p 8080:8080 shishifoxy1/bobapp-back:latest
           docker run -d --name bobapp-front --network bobapp-network -p 8081:80 shishifoxy1/bobapp-front:latest
+-Dsonar:
+  java:
+    binaries=back/target/classes:
