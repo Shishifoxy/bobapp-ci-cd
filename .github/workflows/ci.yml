@@ -25,44 +25,43 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Generate yarn.lock if missing
-        working-directory: front
-        run: |
-          if [ ! -f "yarn.lock" ]; then
-            echo "Generating yarn.lock..."
-            yarn install
-          fi
-
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: 'front/yarn.lock'
 
       - name: Install dependencies
         working-directory: front
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Run tests with coverage
         working-directory: front
         run: |
-          rm -rf coverage/ .nyc_output/
+          # Nettoyage et création du dossier coverage
+          rm -rf coverage
+          mkdir -p coverage
+          
+          # Exécution des tests avec une seule option --browsers
           yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false --no-progress
           
+          # Recherche du rapport dans différents emplacements possibles
           if [ -f "coverage/lcov.info" ]; then
-            echo "✔ Coverage report generated"
             cp coverage/lcov.info ../front-coverage.info
+          elif [ -f "coverage/bobapp/lcov.info" ]; then
+            cp coverage/bobapp/lcov.info ../front-coverage.info
           else
-            echo "::error::Coverage report not found!"
+            echo "::error::Coverage report not found in any expected location!"
             echo "Directory structure:"
-            find . -type d
+            find . -name "lcov.info" -o -name "coverage"
             exit 1
           fi
 
-      - name: Verify coverage
+      - name: Verify coverage report
         run: |
-          echo "Coverage report size: $(wc -l < front-coverage.info) lines"
+          echo "=== Coverage Report ==="
+          echo "Size: $(wc -l < front-coverage.info) lines"
           head -5 front-coverage.info
+          echo "Report path: $(realpath front-coverage.info)"
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -91,7 +90,9 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info
+            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
+            -Dsonar.sources=src,../front/src \
+            -Dsonar.tests=src/test,../front/src/app
 
   docker-publish:
     name: Build & Push Docker Images
