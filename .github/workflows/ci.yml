@@ -29,39 +29,42 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: 'front/yarn.lock'
 
       - name: Install dependencies
         working-directory: front
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Run tests with coverage
         working-directory: front
         run: |
-          # Nettoyage et création du dossier coverage
-          rm -rf coverage
-          mkdir -p coverage
+          # Nettoyage complet
+          rm -rf coverage/ .nyc_output/
           
-          # Exécution des tests avec une seule option --browsers
+          # Exécution unique des tests
           yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false --no-progress
           
-          # Recherche du rapport dans différents emplacements possibles
-          if [ -f "coverage/lcov.info" ]; then
-            cp coverage/lcov.info ../front-coverage.info
-          elif [ -f "coverage/bobapp/lcov.info" ]; then
-            cp coverage/bobapp/lcov.info ../front-coverage.info
+          # Recherche exhaustive du rapport
+          REPORT_PATH=$(find . -name "lcov.info" | head -1)
+          if [ -f "$REPORT_PATH" ]; then
+            echo "✔ Rapport trouvé à: $REPORT_PATH"
+            cp "$REPORT_PATH" ../front-coverage.info
           else
-            echo "::error::Coverage report not found in any expected location!"
-            echo "Directory structure:"
-            find . -name "lcov.info" -o -name "coverage"
+            echo "::error::Aucun rapport lcov.info trouvé!"
+            echo "Structure complète:"
+            find . -type d
+            echo "Contenu de coverage/:"
+            ls -la coverage/ || true
             exit 1
           fi
 
       - name: Verify coverage report
         run: |
-          echo "=== Coverage Report ==="
-          echo "Size: $(wc -l < front-coverage.info) lines"
+          echo "=== Rapport final ==="
+          echo "Emplacement: $(pwd)/front-coverage.info"
+          echo "Taille: $(wc -l < front-coverage.info) lignes"
           head -5 front-coverage.info
-          echo "Report path: $(realpath front-coverage.info)"
 
   sonar-analysis:
     name: SonarCloud Analysis
