@@ -30,40 +30,41 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: 'front/yarn.lock'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
         working-directory: front
-        run: yarn install --frozen-lockfile
+        run: |
+          if [ ! -f "yarn.lock" ]; then
+            yarn install
+          else
+            yarn install --frozen-lockfile
+          fi
 
       - name: Run tests with coverage
         working-directory: front
         run: |
-          # Nettoyage complet
+          # Clean previous reports
           rm -rf coverage/ .nyc_output/
           
-          # Exécution unique des tests
+          # Run tests with coverage
           yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false --no-progress
           
-          # Recherche exhaustive du rapport
-          REPORT_PATH=$(find . -name "lcov.info" | head -1)
-          if [ -f "$REPORT_PATH" ]; then
-            echo "✔ Rapport trouvé à: $REPORT_PATH"
-            cp "$REPORT_PATH" ../front-coverage.info
+          # Verify report exists
+          if [ -f "coverage/lcov-front.info" ]; then
+            cp coverage/lcov-front.info ../front-coverage.info
+            echo "✔ Coverage report copied"
           else
-            echo "::error::Aucun rapport lcov.info trouvé!"
-            echo "Structure complète:"
-            find . -type d
-            echo "Contenu de coverage/:"
-            ls -la coverage/ || true
+            echo "::error::Coverage report not found!"
+            echo "Directory content:"
+            ls -la coverage/
             exit 1
           fi
 
-      - name: Verify coverage report
+      - name: Verify coverage
         run: |
-          echo "=== Rapport final ==="
-          echo "Emplacement: $(pwd)/front-coverage.info"
-          echo "Taille: $(wc -l < front-coverage.info) lignes"
+          echo "=== Coverage Verification ==="
+          echo "Report size: $(wc -l < front-coverage.info) lines"
           head -5 front-coverage.info
 
   sonar-analysis:
@@ -93,9 +94,7 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.sources=src,../front/src \
-            -Dsonar.tests=src/test,../front/src/app
+            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info
 
   docker-publish:
     name: Build & Push Docker Images
