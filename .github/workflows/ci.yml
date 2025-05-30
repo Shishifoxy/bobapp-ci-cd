@@ -47,7 +47,7 @@ jobs:
         run: yarn test --watch=false --browsers=ChromeHeadless --code-coverage
 
   sonar-analysis:
-    name: SonarCloud Analysis
+    name: SonarCloud Analysis Backend
     runs-on: ubuntu-latest
     needs: build-back
 
@@ -68,7 +68,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: SonarCloud Scan
+      - name: SonarCloud Scan Backend
         working-directory: back
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -78,41 +78,40 @@ jobs:
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/coverage/lcov.info
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-sonar-analysis-front:
-  name: SonarCloud Analysis Frontend
-  runs-on: ubuntu-latest
-  needs: build-front
+  sonar-analysis-front:
+    name: SonarCloud Analysis Frontend
+    runs-on: ubuntu-latest
+    needs: build-front
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-    - name: Install dependencies
-      working-directory: front
-      run: yarn install
+      - name: Install dependencies
+        working-directory: front
+        run: yarn install
 
-    - name: Run tests and generate coverage
-      working-directory: front
-      run: yarn test --watch=false --code-coverage
+      - name: Run tests and generate coverage
+        working-directory: front
+        run: yarn test --watch=false --code-coverage
 
-    - name: SonarCloud Scan
-      working-directory: front
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: npx sonar-scanner
+      - name: SonarCloud Scan Frontend
+        working-directory: front
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: npx sonar-scanner
 
   docker-publish:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    needs: sonar-analysis
+    needs: [sonar-analysis, sonar-analysis-front]
 
     steps:
       - name: Checkout code
@@ -134,7 +133,7 @@ sonar-analysis-front:
   deploy:
     name: Simulated Deploy
     runs-on: ubuntu-latest
-    needs: [build-back, build-front]
+    needs: [docker-publish]
 
     steps:
       - name: Docker Login
