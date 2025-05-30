@@ -47,9 +47,9 @@ jobs:
         run: yarn test --watch=false --browsers=ChromeHeadless --code-coverage
 
   sonar-analysis:
-    name: SonarCloud Analysis Backend
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    needs: build-back
+    needs: [build-back, build-front]
 
     steps:
       - name: Checkout code
@@ -68,8 +68,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: SonarCloud Scan Backend
-        working-directory: back
+      - name: SonarCloud Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -78,35 +77,10 @@ jobs:
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml \
+            -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info \
+            -Dsonar.sources=back/src,front/src
 
-  sonar-analysis-front:
-    name: SonarCloud Analysis Frontend
-    runs-on: ubuntu-latest
-    needs: build-front
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        working-directory: front
-        run: yarn install
-
-      - name: Run tests and generate coverage
-        working-directory: front
-        run: yarn test --watch=false --code-coverage
-
-      - name: SonarCloud Scan Frontend
-        working-directory: front
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: npx sonar-scanner
 
   docker-publish:
     name: Build & Push Docker Images

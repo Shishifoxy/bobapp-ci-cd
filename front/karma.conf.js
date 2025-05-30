@@ -25,7 +25,7 @@ module.exports = function (config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' },
-        { type: 'lcovonly' } // ⚠️ Nécessaire pour SonarCloud (fichier lcov.info)
+        { type: 'lcovonly' }
       ]
     },
     reporters: ['progress', 'kjhtml'],
