@@ -11,31 +11,33 @@ jobs:
     name: Build & Test Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
-
-      - name: Build with Maven
+      - run: mvn clean verify
         working-directory: back
-        run: mvn clean verify
 
   build-front:
     name: Build & Test Frontend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Generate yarn.lock if missing
+        working-directory: front
+        run: |
+          if [ ! -f "yarn.lock" ]; then
+            echo "Generating yarn.lock..."
+            yarn install
+          fi
+
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'yarn'
+          cache-dependency-path: 'front/yarn.lock'
 
       - name: Install dependencies
         working-directory: front
@@ -47,47 +49,36 @@ jobs:
           rm -rf coverage/ .nyc_output/
           yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false --no-progress
           
-          # Vérification que le rapport existe bien
           if [ -f "coverage/lcov.info" ]; then
-            echo "✔ Rapport de couverture généré avec succès"
+            echo "✔ Coverage report generated"
             cp coverage/lcov.info ../front-coverage.info
           else
-            echo "::error::Le rapport de couverture n'a pas été généré"
-            echo "Structure des dossiers:"
+            echo "::error::Coverage report not found!"
+            echo "Directory structure:"
             find . -type d
-            echo "Contenu du dossier front:"
-            ls -la
             exit 1
           fi
 
-      - name: Verify coverage report
+      - name: Verify coverage
         run: |
-          echo "=== Vérification finale ==="
-          echo "Emplacement du rapport: $(pwd)/front-coverage.info"
-          echo "Taille du rapport: $(wc -l < front-coverage.info) lignes"
-          head -n 5 front-coverage.info
+          echo "Coverage report size: $(wc -l < front-coverage.info) lines"
+          head -5 front-coverage.info
 
   sonar-analysis:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [build-back, build-front]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
       - name: SonarCloud Scan
         working-directory: back
         env:
@@ -100,28 +91,19 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.sources=src,../front/src \
-            -Dsonar.tests=src/test,../front/src/app
+            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info
 
   docker-publish:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
     needs: sonar-analysis
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Build and push backend image
-        run: |
+      - uses: actions/checkout@v3
+      - run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - run: |
           docker build -t shishifoxy1/bobapp-back ./back
           docker push shishifoxy1/bobapp-back
-
-      - name: Build and push frontend image
-        run: |
+      - run: |
           docker build -t shishifoxy1/bobapp-front ./front
           docker push shishifoxy1/bobapp-front
 
@@ -130,11 +112,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker-publish]
     steps:
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Pull and Run Docker Images
-        run: |
+      - run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - run: |
           docker pull shishifoxy1/bobapp-back:latest
           docker pull shishifoxy1/bobapp-front:latest
           docker network create bobapp-network
