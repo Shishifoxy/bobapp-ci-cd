@@ -22,7 +22,7 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require('path').join(__dirname, 'coverage'),
       reporters: [
-        { type: 'lcovonly', subdir: '.', file: 'lcov-front.info' }, // Nom distinct
+        { type: 'lcov', subdir: '.', file: 'lcov.info' },  // Changement clé ici
         { type: 'text-summary' }
       ]
     },
