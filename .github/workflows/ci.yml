@@ -44,7 +44,10 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: front
-        run: yarn test --no-watch --code-coverage --browsers=ChromeHeadlessCI
+        run: |
+          yarn test --no-watch --code-coverage --browsers=ChromeHeadlessCI
+          ls -la coverage/bobapp/
+          cat coverage/bobapp/lcov.info | head -n 5
 
       - name: Verify coverage report
         working-directory: front
@@ -85,8 +88,8 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/coverage/lcov.info \
-            -Dsonar.typescript.lcov.reportPaths=../front/coverage/lcov.info
+            -Dsonar.javascript.lcov.reportPaths=../front/coverage/bobapp/lcov.info \
+            -Dsonar.typescript.lcov.reportPaths=../front/coverage/bobapp/lcov.info
 
   docker-publish:
     name: Build & Push Docker Images
