@@ -57,7 +57,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master  # ← Action officielle comme l'élève
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -66,10 +66,11 @@ jobs:
           args: >
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd
             -Dsonar.organization=shishifoxy
-            -Dsonar.javascript.lcov.reportPaths=front/coverage/bobapp/lcov.info  # ← Votre chemin
-            -Dsonar.java.binaries=back/target/classes
-            -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml
-            -Dsonar.sources=front/src/app,back/src/main/java  # ← Sources combinées comme l'élève
+            -Dsonar.sources=./front/src/app,./back/src/main/java
+            -Dsonar.java.binaries=./back/target
+            -Dsonar.coverage.jacoco.xmlReportPaths=./back/target/site/jacoco/jacoco.xml
+            -Dsonar.javascript.lcov.reportPaths=./front/coverage/bobapp/lcov.info
+            -Dsonar.typescript.lcov.reportPaths=./front/coverage/bobapp/lcov.info
 
   docker-publish:
     name: Build & Push Docker Images
