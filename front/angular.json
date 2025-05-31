@@ -105,16 +105,13 @@
               "src/styles.scss"
             ],
             "scripts": [],
-            "codeCoverage": true,
-            "codeCoverageExclude": [
-              "**/*.spec.ts",
-              "**/testing/*",
-              "**/*.module.ts",
-              "**/environments/*"
-            ]
+            "codeCoverage": true
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
