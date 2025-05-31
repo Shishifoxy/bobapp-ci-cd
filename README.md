@@ -1,57 +1,105 @@
-# BobApp
+# BobApp - CI/CD Ready 🚀
 
-Clone project:
+Application fullstack Angular + Spring Boot, dockerisée et intégrée à une pipeline CI/CD complète via GitHub Actions et SonarCloud.
 
-> git clone XXXXX
+---
 
-## Front-end 
+## 🧩 Cloner le projet
 
-Go inside folder the front folder:
+```bash
+git clone https://github.com/shishifoxy/bobapp-ci-cd.git
+cd bobapp-ci-cd
+```
 
-> cd front
+---
 
-Install dependencies:
+## 🌐 Lancer l’application en développement (via Docker Compose)
 
-> npm install
+Ce mode **compile les images à partir du code local**.  
+Utile pour tester localement après une modification.
 
-Launch Front-end:
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
 
-> npm run start;
+### ➕ Prérequis
 
-### Docker
+- [Docker](https://www.docker.com/)
+- Docker Desktop ou moteur Docker installé et lancé
 
-Build the container:
+L'application sera disponible sur :
+- `http://localhost:8080` (backend)
+- `http://localhost:8081` (frontend)
 
-> docker build -t bobapp-front .  
+---
 
-Start the container:
+## 🚢 Lancer la version de production simulée
 
-> docker run -p 8081:80 --name bobapp-front -d bobapp-front
+Ce mode **télécharge les images publiées sur Docker Hub** (via la pipeline GitHub Actions).
 
-## Back-end
+```bash
+docker-compose up -d
+```
 
-Go inside folder the back folder:
+Les images utilisées sont :
+- `shishifoxy1/bobapp-back:latest`
+- `shishifoxy1/bobapp-front:latest`
 
-> cd back
+---
 
-Install dependencies:
+## 🧪 Lancer les tests manuellement
 
-> mvn clean install
+### Backend (Spring Boot)
 
-Launch Back-end:
+```bash
+cd back
+mvn clean test
+```
 
->  mvn spring-boot:run
+### Frontend (Angular)
 
-Launch the tests:
+```bash
+cd front
+npm install
+npm test
+```
 
-> mvn clean install
+---
 
-### Docker
+## 🐳 Docker : commandes manuelles
 
-Build the container:
+### Backend
 
-> docker build -t bobapp-back .  
+```bash
+cd back
+docker build -t bobapp-back .
+docker run -p 8080:8080 --name bobapp-back -d bobapp-back
+```
 
-Start the container:
+### Frontend
 
-> docker run -p 8080:8080 --name bobapp-back -d bobapp-back 
+```bash
+cd front
+docker build -t bobapp-front .
+docker run -p 8081:80 --name bobapp-front -d bobapp-front
+```
+
+---
+
+## 📦 Pipeline CI/CD
+
+- ✅ Tests automatiques
+- ✅ Analyse de qualité de code avec SonarCloud
+- ✅ Build d’images Docker
+- ✅ Push automatique sur Docker Hub
+- ✅ Déploiement simulé via `docker-compose`
+
+---
+
+## 🛠 Technologies utilisées
+
+- Angular 14
+- Spring Boot (Java 11)
+- Docker / Docker Compose
+- GitHub Actions
+- SonarCloud
