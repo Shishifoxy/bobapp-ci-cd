@@ -71,21 +71,18 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          echo "=== Vérification du rapport front ==="
-          ls -la front/front-coverage.info
-          head -5 front/front-coverage.info
-
           mvn -f back/pom.xml verify sonar:sonar \
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=front/front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=front/front-coverage.info \
-            -Dsonar.sources=src \
-            -Dsonar.tests=src/test \
-            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \  # Updated from sonar.login to sonar.token
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.javascript.lcov.reportPaths=../front/front-coverage.info \
+            -Dsonar.typescript.lcov.reportPaths=../front/front-coverage.info \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.java.binaries=target/classes
 
   docker-publish:
     name: Build & Push Docker Images
