@@ -70,6 +70,9 @@ jobs:
         with:
           name: front-coverage
 
+      - name: Move coverage file to root
+        run: mv front-coverage/front-coverage.info front-coverage.info
+
       - name: SonarCloud Scan
         working-directory: back
         env:
@@ -90,7 +93,6 @@ jobs:
             -Dsonar.sources=src,../front/src \
             -Dsonar.tests=src/test,../front/src/app \
             -Dsonar.sourceEncoding=UTF-8
-
 
   docker-publish:
     name: Build & Push Docker Images
