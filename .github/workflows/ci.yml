@@ -88,9 +88,10 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
             -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
+            -Dsonar.sources=../front/src,src/main/java \
+            -Dsonar.tests=../front/src/app,src/test/java \
             -Dsonar.sourceEncoding=UTF-8
+
 
   docker-publish:
     name: Build & Push Docker Images
