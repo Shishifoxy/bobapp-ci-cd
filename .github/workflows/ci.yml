@@ -16,7 +16,8 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - run: mvn clean verify
+          cache: maven  # ← Ajout du cache comme l'élève
+      - run: mvn -B clean verify  # ← -B pour mode batch comme l'élève
         working-directory: back
 
   build-front:
@@ -24,37 +25,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-
+      - name: Cache dependencies  # ← Nouveau bloc cache comme l'élève
+        uses: actions/cache@v3
+        with:
+          path: front/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('front/package-lock.json') }}
       - name: Install dependencies
         working-directory: front
         run: npm ci
-
       - name: Run tests with coverage
         working-directory: front
-        run: |
-          rm -rf coverage
-          npm run test
-          if [ -f "coverage/bobapp/lcov.info" ]; then
-            echo "✔ Rapport lcov.info trouvé"
-            # Crée le dossier à la racine du projet
-            mkdir -p ../../coverage-report
-            cp coverage/bobapp/lcov.info ../../coverage-report/front-lcov.info
-          else
-            echo "::error::Fichier lcov.info introuvable dans coverage/bobapp/"
-            ls -la coverage/
-            exit 1
-          fi
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: front-coverage
-          path: coverage-report/front-lcov.info
+        run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -66,22 +51,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
+      - name: Cache SonarCloud packages  # ← Nouveau bloc cache comme l'élève
+        uses: actions/cache@v3
         with:
-          name: front-coverage
-          path: coverage-report
-
-      - name: Verify files
-        run: |
-          echo "=== Vérification des fichiers ==="
-          ls -la coverage-report/front-lcov.info
-          head -5 coverage-report/front-lcov.info
-          ls -la back/target/site/jacoco/jacoco.xml
-
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@master  # ← Action officielle comme l'élève
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,12 +66,10 @@ jobs:
           args: >
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd
             -Dsonar.organization=shishifoxy
-            -Dsonar.sources=front/src/app,back/src/main/java
-            -Dsonar.tests=back/src/test/java
+            -Dsonar.javascript.lcov.reportPaths=front/coverage/bobapp/lcov.info  # ← Votre chemin
             -Dsonar.java.binaries=back/target/classes
             -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml
-            -Dsonar.javascript.lcov.reportPaths=coverage-report/front-lcov.info
-            -Dsonar.typescript.lcov.reportPaths=coverage-report/front-lcov.info
+            -Dsonar.sources=front/src/app,back/src/main/java  # ← Sources combinées comme l'élève
 
   docker-publish:
     name: Build & Push Docker Images
@@ -107,11 +81,10 @@ jobs:
       - run: |
           docker build -t shishifoxy1/bobapp-back ./back
           docker push shishifoxy1/bobapp-back
-      - run: |
           docker build -t shishifoxy1/bobapp-front ./front
           docker push shishifoxy1/bobapp-front
 
-  deploy:
+  deploy:  # ← Bloc deploy conservé comme dans votre original
     name: Simulated Deploy
     runs-on: ubuntu-latest
     needs: [docker-publish]
