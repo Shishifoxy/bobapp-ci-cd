@@ -46,8 +46,8 @@ jobs:
         working-directory: front
         run: |
           npm test -- --code-coverage --watch=false --browsers=ChromeHeadless
-          # Corrige les chemins absolus dans le rapport LCOV
-          sed -i 's/\/home\/runner\/work\/bobapp-ci-cd\/bobapp-ci-cd\/front/.\/front/g' coverage/bobapp/lcov.info
+          sed -i 's|/home/runner/work/bobapp-ci-cd/bobapp-ci-cd/front|./front|g' coverage/bobapp/lcov.info
+
       - uses: actions/upload-artifact@v4
         with:
           name: front-coverage
