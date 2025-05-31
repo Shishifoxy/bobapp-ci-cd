@@ -100,6 +100,6 @@ docker run -p 8081:80 --name bobapp-front -d bobapp-front
 
 - Angular 14
 - Spring Boot (Java 11)
-- Docker / Docker Compose
-- GitHub Actions
-- SonarCloud
+- Docker / Docker Compose (Lien vers les images dans DockerHub : https://hub.docker.com/r/shishifoxy1/bobapp-back & https://hub.docker.com/r/shishifoxy1/bobapp-front)
+- GitHub Actions https://github.com/Shishifoxy/bobapp-ci-cd/actions
+- SonarCloud : https://sonarcloud.io/code?id=Shishifoxy_bobapp-ci-cd
