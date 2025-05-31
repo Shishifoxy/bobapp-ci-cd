@@ -41,7 +41,10 @@ jobs:
           npm run test
           if [ -f "coverage/lcov.info" ]; then
             echo "✔ Rapport lcov.info trouvé"
-            cp coverage/lcov.info ../front-coverage.info
+            # Création du sous-dossier bobapp pour correspondre au chemin attendu
+            mkdir -p coverage/bobapp
+            cp coverage/lcov.info coverage/bobapp/lcov.info
+            cp coverage/bobapp/lcov.info ../front-coverage.info
           else
             echo "::error::Fichier lcov.info introuvable dans coverage/"
             ls -la coverage/
@@ -80,17 +83,26 @@ jobs:
           ls -la ../front-coverage.info
           head -5 ../front-coverage.info
 
+          # Création du fichier sonar-project.properties temporaire
+          cat > sonar-project.properties <<EOF
+          sonar.projectKey=Shishifoxy_bobapp-ci-cd
+          sonar.organization=shishifoxy
+          sonar.host.url=https://sonarcloud.io
+          sonar.sources=../front/src/app,src/main/java
+          sonar.tests=src/test/java
+          sonar.sourceEncoding=UTF-8
+          sonar.java.binaries=target/classes
+          sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          sonar.javascript.lcov.reportPaths=../front-coverage.info
+          sonar.typescript.lcov.reportPaths=../front-coverage.info
+          EOF
+
           mvn verify sonar:sonar \
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
-            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.projectBaseDir=..
 
   docker-publish:
     name: Build & Push Docker Images

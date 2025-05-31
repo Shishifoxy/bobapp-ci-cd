@@ -20,9 +20,10 @@ module.exports = function (config) {
       suppressAll: true
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, 'coverage'),
+      dir: require('path').join(__dirname, 'coverage/bobapp'),
+      subdir: '.',
       reporters: [
-        { type: 'lcov', subdir: '.', file: 'lcov.info' },  // Changement clé ici
+        { type: 'lcov', subdir: '.' },
         { type: 'text-summary' }
       ]
     },
