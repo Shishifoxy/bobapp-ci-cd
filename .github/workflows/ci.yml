@@ -91,6 +91,7 @@ jobs:
             -Dsonar.tests=src/test,../front/src/app \
             -Dsonar.sourceEncoding=UTF-8
 
+
   docker-publish:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
