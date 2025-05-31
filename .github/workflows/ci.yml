@@ -38,10 +38,10 @@ jobs:
         working-directory: front
         run: |
           rm -rf coverage
-          yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false
+          yarn test --code-coverage --watch=false --browsers=ChromeHeadlessCI
           if [ -f "coverage/lcov.info" ]; then
             echo "✔ Rapport lcov.info trouvé"
-            cp coverage/lcov.info front-coverage.info
+            cp coverage/lcov.info ../front-coverage.info
           else
             echo "::error::Fichier lcov.info introuvable dans coverage/"
             ls -la coverage/
@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: front-coverage
-          path: front/front-coverage.info
+          path: front-coverage.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -70,8 +70,8 @@ jobs:
         with:
           name: front-coverage
 
-      - name: Move coverage file to root
-        run: mv front-coverage/front-coverage.info front-coverage.info
+      - name: Move report to correct location
+        run: mv front-coverage.info front/front-coverage.info
 
       - name: SonarCloud Scan
         working-directory: back
@@ -79,17 +79,17 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           echo "=== Vérification finale du rapport ==="
-          ls -la front-coverage.info
-          head -5 front-coverage.info
-          
+          ls -la ../front/front-coverage.info
+          head -5 ../front/front-coverage.info
+
           mvn verify sonar:sonar \
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=front-coverage.info \
+            -Dsonar.javascript.lcov.reportPaths=../front/front-coverage.info \
+            -Dsonar.typescript.lcov.reportPaths=../front/front-coverage.info \
             -Dsonar.sources=src,../front/src \
             -Dsonar.tests=src/test,../front/src/app \
             -Dsonar.sourceEncoding=UTF-8
