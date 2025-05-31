@@ -83,8 +83,8 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml \
             -Dsonar.javascript.lcov.reportPaths=front/front-coverage.info \
             -Dsonar.typescript.lcov.reportPaths=front/front-coverage.info \
-            -Dsonar.sources=back/src,front/src \
-            -Dsonar.tests=back/src/test,front/src/app \
+            -Dsonar.sources=src \
+            -Dsonar.tests=src/test \
             -Dsonar.sourceEncoding=UTF-8
 
   docker-publish:
