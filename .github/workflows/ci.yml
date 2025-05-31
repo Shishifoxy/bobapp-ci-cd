@@ -39,14 +39,11 @@ jobs:
         run: |
           rm -rf coverage
           npm run test
-          if [ -f "coverage/lcov.info" ]; then
-            echo "✔ Rapport lcov.info trouvé"
-            # Création du sous-dossier bobapp pour correspondre au chemin attendu
-            mkdir -p coverage/bobapp
-            cp coverage/lcov.info coverage/bobapp/lcov.info
-            cp coverage/bobapp/lcov.info ../front-coverage.info
+          if [ -f "coverage/bobapp/lcov.info" ]; then  # <-- Modifier cette ligne
+            echo "✔ Rapport lcov.info trouvé dans coverage/bobapp/"
+            cp coverage/bobapp/lcov.info ../front-coverage.info  # <-- Modifier cette ligne
           else
-            echo "::error::Fichier lcov.info introuvable dans coverage/"
+            echo "::error::Fichier lcov.info introuvable dans coverage/bobapp/"
             ls -la coverage/
             exit 1
           fi
