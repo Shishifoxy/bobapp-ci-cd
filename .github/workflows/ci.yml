@@ -24,35 +24,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
-
       - name: Install dependencies
         working-directory: front
         run: yarn install
-
       - name: Run tests with coverage
         working-directory: front
         run: |
           rm -rf coverage
-          yarn test --code-coverage --watch=false --browsers=ChromeHeadlessCI
-          if [ -f "coverage/lcov.info" ]; then
-            echo "✔ Rapport lcov.info trouvé"
-            cp coverage/lcov.info ../front-coverage.info
+          yarn test
+          if [ -f "coverage/bobapp/lcov.info" ]; then
+            echo "✔ Rapport coverage/bobapp/lcov.info trouvé"
+            cp coverage/bobapp/lcov.info front-coverage.info
           else
-            echo "::error::Fichier lcov.info introuvable dans coverage/"
+            echo "::error::Fichier lcov.info introuvable dans coverage/bobapp/"
             ls -la coverage/
             exit 1
           fi
-
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: front-coverage
-          path: front-coverage.info
+          path: front/front-coverage.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -64,35 +59,33 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Download coverage report
         uses: actions/download-artifact@v4
         with:
           name: front-coverage
-
-      - name: Move report to correct location
-        run: mv front-coverage.info front/front-coverage.info
-
+      - name: Move coverage report
+        run: mv front/front-coverage.info front-coverage.info
       - name: SonarCloud Scan
         working-directory: back
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           echo "=== Vérification finale du rapport ==="
-          ls -la ../front/front-coverage.info
-          head -5 ../front/front-coverage.info
-
+          ls -la front-coverage.info
+          head -5 front-coverage.info
           mvn verify sonar:sonar \
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front/front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front/front-coverage.info \
+            -Dsonar.javascript.lcov.reportPaths=front-coverage.info \
+            -Dsonar.typescript.lcov.reportPaths=front-coverage.info \
             -Dsonar.sources=src,../front/src \
             -Dsonar.tests=src/test,../front/src/app \
-            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.test.inclusions=src/test/java/**/*.java \
+            -Dsonar.exclusions=src/test/java/com/openclassrooms/bobapp/BobappApplicationTests.java
 
   docker-publish:
     name: Build & Push Docker Images
