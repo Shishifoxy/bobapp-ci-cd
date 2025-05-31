@@ -39,9 +39,11 @@ jobs:
         run: |
           rm -rf coverage
           npm run test
-          if [ -f "coverage/bobapp/lcov.info" ]; then  # <-- Modifier cette ligne
+          if [ -f "coverage/bobapp/lcov.info" ]; then
             echo "✔ Rapport lcov.info trouvé dans coverage/bobapp/"
-            cp coverage/bobapp/lcov.info ../front-coverage.info  # <-- Modifier cette ligne
+            # Création du dossier coverage à la racine pour SonarCloud
+            mkdir -p ../coverage
+            cp coverage/bobapp/lcov.info ../coverage/front-lcov.info
           else
             echo "::error::Fichier lcov.info introuvable dans coverage/bobapp/"
             ls -la coverage/
@@ -52,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: front-coverage
-          path: front-coverage.info
+          path: ../coverage/front-lcov.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -69,37 +71,32 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: front-coverage
-          path: .
+          path: coverage
+
+      - name: Verify files exist
+        run: |
+          echo "=== Files check ==="
+          ls -la coverage/front-lcov.info
+          ls -la back/target/site/jacoco/jacoco.xml
+          head -5 coverage/front-lcov.info
 
       - name: SonarCloud Scan
-        working-directory: back
+        uses: SonarSource/sonarcloud-github-action@master
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          echo "=== Vérification finale du rapport ==="
-          ls -la ../front-coverage.info
-          head -5 ../front-coverage.info
-
-          # Création du fichier sonar-project.properties temporaire
-          cat > sonar-project.properties <<EOF
-          sonar.projectKey=Shishifoxy_bobapp-ci-cd
-          sonar.organization=shishifoxy
-          sonar.host.url=https://sonarcloud.io
-          sonar.sources=../front/src/app,src/main/java
-          sonar.tests=src/test/java
-          sonar.sourceEncoding=UTF-8
-          sonar.java.binaries=target/classes
-          sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-          sonar.javascript.lcov.reportPaths=../front-coverage.info
-          sonar.typescript.lcov.reportPaths=../front-coverage.info
-          EOF
-
-          mvn verify sonar:sonar \
-            -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
-            -Dsonar.organization=shishifoxy \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.projectBaseDir=..
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.verbose=true
+            -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd
+            -Dsonar.organization=shishifoxy
+            -Dsonar.sources=front/src/app,back/src/main/java
+            -Dsonar.tests=back/src/test/java
+            -Dsonar.java.binaries=back/target/classes
+            -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml
+            -Dsonar.javascript.lcov.reportPaths=coverage/front-lcov.info
+            -Dsonar.typescript.lcov.reportPaths=coverage/front-lcov.info
 
   docker-publish:
     name: Build & Push Docker Images
