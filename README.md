@@ -1,4 +1,4 @@
-# BobApp - CI/CD Ready 🚀
+# BobApp - CI/CD 
 
 Application fullstack Angular + Spring Boot, dockerisée et intégrée à une pipeline CI/CD complète via GitHub Actions et SonarCloud.
 
