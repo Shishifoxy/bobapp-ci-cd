@@ -32,13 +32,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: front
-        run: yarn install
+        run: npm ci
 
       - name: Run tests with coverage
         working-directory: front
         run: |
           rm -rf coverage
-          yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false
+          npm run test
           if [ -f "coverage/lcov.info" ]; then
             echo "✔ Rapport lcov.info trouvé"
             cp coverage/lcov.info front-coverage.info
@@ -69,6 +69,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: front-coverage
+
+      - name: Move coverage file
+        run: mv front-coverage.info back/front-coverage.info
 
       - name: SonarCloud Scan
         working-directory: back
