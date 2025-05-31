@@ -40,10 +40,10 @@ jobs:
           rm -rf coverage
           npm run test
           if [ -f "coverage/bobapp/lcov.info" ]; then
-            echo "✔ Rapport lcov.info trouvé dans coverage/bobapp/"
-            # Création du dossier coverage à la racine pour SonarCloud
-            mkdir -p ../coverage
-            cp coverage/bobapp/lcov.info ../coverage/front-lcov.info
+            echo "✔ Rapport lcov.info trouvé"
+            # Crée le dossier à la racine du projet
+            mkdir -p ../../coverage-report
+            cp coverage/bobapp/lcov.info ../../coverage-report/front-lcov.info
           else
             echo "::error::Fichier lcov.info introuvable dans coverage/bobapp/"
             ls -la coverage/
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: front-coverage
-          path: ../coverage/front-lcov.info
+          path: coverage-report/front-lcov.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -71,14 +71,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: front-coverage
-          path: coverage
+          path: coverage-report
 
-      - name: Verify files exist
+      - name: Verify files
         run: |
-          echo "=== Files check ==="
-          ls -la coverage/front-lcov.info
+          echo "=== Vérification des fichiers ==="
+          ls -la coverage-report/front-lcov.info
+          head -5 coverage-report/front-lcov.info
           ls -la back/target/site/jacoco/jacoco.xml
-          head -5 coverage/front-lcov.info
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
@@ -88,15 +88,14 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.verbose=true
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd
             -Dsonar.organization=shishifoxy
             -Dsonar.sources=front/src/app,back/src/main/java
             -Dsonar.tests=back/src/test/java
             -Dsonar.java.binaries=back/target/classes
             -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml
-            -Dsonar.javascript.lcov.reportPaths=coverage/front-lcov.info
-            -Dsonar.typescript.lcov.reportPaths=coverage/front-lcov.info
+            -Dsonar.javascript.lcov.reportPaths=coverage-report/front-lcov.info
+            -Dsonar.typescript.lcov.reportPaths=coverage-report/front-lcov.info
 
   docker-publish:
     name: Build & Push Docker Images
