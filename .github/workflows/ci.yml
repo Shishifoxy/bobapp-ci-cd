@@ -37,29 +37,22 @@ jobs:
       - name: Run tests with coverage
         working-directory: front
         run: |
-          # Nettoyage et création du dossier coverage
           rm -rf coverage
-          
-          # Exécution unique des tests avec coverage
           yarn test --code-coverage --browsers=ChromeHeadlessCI --watch=false
-          
-          # Vérification et copie du rapport
           if [ -f "coverage/lcov.info" ]; then
-            echo "✔ Rapport lcov.info trouvé et copié"
-            cp coverage/lcov.info ../front-coverage.info
+            echo "✔ Rapport lcov.info trouvé"
+            cp coverage/lcov.info front-coverage.info
           else
             echo "::error::Fichier lcov.info introuvable dans coverage/"
-            echo "Contenu du dossier coverage:"
             ls -la coverage/
             exit 1
           fi
 
-      - name: Verify coverage report
-        run: |
-          echo "=== Vérification finale ==="
-          echo "Taille du rapport: $(wc -l < front-coverage.info) lignes"
-          echo "Extrait du rapport:"
-          head -5 front-coverage.info
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: front-coverage
+          path: front/front-coverage.info
 
   sonar-analysis:
     name: SonarCloud Analysis
@@ -71,25 +64,29 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: front-coverage
+
       - name: SonarCloud Scan
         working-directory: back
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # Vérification ultime du rapport
-          ls -la ../front-coverage.info
-          echo "Premières lignes:"
-          head -5 ../front-coverage.info
+          echo "=== Vérification finale du rapport ==="
+          ls -la front-coverage.info
+          head -5 front-coverage.info
           
-          # Analyse Sonar avec paramètres optimisés
           mvn verify sonar:sonar \
             -Dsonar.projectKey=Shishifoxy_bobapp-ci-cd \
             -Dsonar.organization=shishifoxy \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-            -Dsonar.javascript.lcov.reportPaths=../front-coverage.info \
-            -Dsonar.typescript.lcov.reportPaths=../front-coverage.info \
+            -Dsonar.javascript.lcov.reportPaths=front-coverage.info \
+            -Dsonar.typescript.lcov.reportPaths=front-coverage.info \
             -Dsonar.sources=src,../front/src \
             -Dsonar.tests=src/test,../front/src/app \
             -Dsonar.sourceEncoding=UTF-8
