@@ -67,12 +67,6 @@ jobs:
         with:
           name: front-coverage
           path: front/coverage/bobapp
-      - name: Verify files
-        run: |
-          echo "=== Backend structure ==="
-          ls -la back/target/classes/
-          echo "=== Frontend coverage ==="
-          head -n 20 front/coverage/bobapp/lcov.info
       - uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -85,7 +79,6 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=back/target/site/jacoco/jacoco.xml
             -Dsonar.javascript.lcov.reportPaths=front/coverage/bobapp/lcov.info
             -Dsonar.typescript.lcov.reportPaths=front/coverage/bobapp/lcov.info
-            -Dsonar.typescript.tsconfigPaths=front/tsconfig.json
 
   docker-publish:
     name: Build & Push Docker Images

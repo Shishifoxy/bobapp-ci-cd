@@ -31,14 +31,21 @@ L'application sera disponible sur :
 - `http://localhost:8080` (backend)
 - `http://localhost:8081` (frontend)
 
+### 🔐 Secrets GitHub requis
+
+Pour que le workflow CI/CD fonctionne correctement, assurez-vous de configurer les secrets suivants dans votre repository GitHub :
+
+- `SONAR_TOKEN` : token SonarCloud (Settings > Security > Secrets and variables > Actions)
+- `DOCKERHUB_USERNAME` : votre identifiant Docker Hub
+- `DOCKERHUB_TOKEN` : token d’accès Docker Hub (non votre mot de passe)
 ---
 
 ## 🚢 Lancer la version de production simulée
 
-Ce mode **télécharge les images publiées sur Docker Hub** (via la pipeline GitHub Actions).
+Ce mode **télécharge les images publiées sur Docker  et relance les containers** (via la pipeline GitHub Actions).
 
 ```bash
-docker-compose up -d
+docker-compose pull & docker-compose up -d
 ```
 
 Les images utilisées sont :
@@ -66,7 +73,7 @@ npm test
 
 ---
 
-## 🐳 Docker : commandes manuelles
+## 🐳 Docker : commandes manuelles 
 
 ### Backend
 
